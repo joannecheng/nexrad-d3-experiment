@@ -1,9 +1,9 @@
 "use strict";
 
-var w = 960;
-var h = 600;
+const w = 960;
+const h = 600;
 
-var svg = d3.select("#viz")
+const svg = d3.select("#viz")
   .append("svg")
   .attr("width", w)
   .attr("height", h)
@@ -14,13 +14,13 @@ const canvas = svg.append("foreignObject")
   .attr("width", w)
   .attr("height", h)
 
-var projection = d3.geoAlbersUsa();
+const projection = d3.geoAlbersUsa();
 
-var basemapSVG = svg.append("g")
+const basemapSVG = svg.append("g")
   .classed("map", true);
 
 d3.json("us.json", function(err, data) {
-  var path = d3.geoPath()
+  const path = d3.geoPath()
     .projection(projection)
 
   basemapSVG
@@ -31,7 +31,7 @@ d3.json("us.json", function(err, data) {
 })
 
 
-var radarQueue = d3.queue();
+const radarQueue = d3.queue()
 radarQueue.defer(d3.csv, "result.csv")
 radarQueue.await(drawRadar)
 
@@ -39,7 +39,7 @@ radarQueue.await(drawRadar)
 // Draw Radar
 function drawRadar(error, radarData) {
   const context = canvas.node().getContext('2d')
-  var radarColorScale = d3.scaleLinear()
+  const radarColorScale = d3.scaleLinear()
     .domain([0, 50])
     .range(["#FFFFB2", "#B10026"])
 
