@@ -40,8 +40,8 @@ radarQueue.await(drawRadar)
 function drawRadar(error, radarData) {
   const context = canvas.node().getContext('2d')
   const radarColorScale = d3.scaleLinear()
-    .domain([0, 50])
-    .range(["#FFFFB2", "#B10026"])
+    .domain([0, 10, 20, 30, 35, 40, 45, 50, 55])
+    .range(["#FFFFFF", "gray", "light blue", "#00FB90", "#00BB00", "#FFFF70", "#D0D060", "#FF6060", "#DA0000"]);
 
   radarData.forEach((d) => {
     const val = parseFloat(d.value)
