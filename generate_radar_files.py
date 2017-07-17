@@ -31,9 +31,7 @@ def save_as_csv(filename, data, level, append, extent=300, points=100):
         refl_field="reflectivityqc",
         max_refl=100.0)
     center = [grids.axes["lat"]["data"][0], grids.axes["lon"]["data"][0]]
-    print grids.axes["time"]["units"]
     date = grids.axes["time"]["units"].replace("seconds since ", "")
-    print date
 
     ref = grids.fields["reflectivityqc"]["data"][level]
 
