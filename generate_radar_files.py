@@ -1,11 +1,10 @@
-#!/usr/bin/env ~/miniconda2/bin/python
+#!/usr/bin/env
 import csv
 import math
 
 import pyart.io
 import numpy as np
 import numpy.ma as ma
-import boto
 
 import geopy
 from geopy.distance import VincentyDistance
@@ -58,20 +57,31 @@ def save_as_csv(filename, data, level, append, extent=300, points=100):
     csvfile.close()
     return data
 
+def generate_csv(filename):
+    radar = pyart.io.read_nexrad_archive("data/" + filename)
 
-radar = pyart.io.read_nexrad_archive("KMHX20140703_182118_V06.gz")
+    refl_grid = radar.get_field(0, "reflectivity")
+    rhohv_grid = radar.get_field(0, "cross_correlation_ratio")
+    zdr_grid = radar.get_field(0, "differential_reflectivity")
 
-refl_grid = radar.get_field(0, "reflectivity")
-rhohv_grid = radar.get_field(0, "cross_correlation_ratio")
-zdr_grid = radar.get_field(0, "differential_reflectivity")
+    ref_low = np.less(refl_grid, 20)
+    zdr_high = np.greater(np.abs(zdr_grid), 2.3)
+    rhohv_low = np.less(rhohv_grid, 0.95)
+    notweather = np.logical_or(ref_low, np.logical_or(zdr_high, rhohv_low))
 
-ref_low = np.less(refl_grid, 20)
-zdr_high = np.greater(np.abs(zdr_grid), 2.3)
-rhohv_low = np.less(rhohv_grid, 0.95)
-notweather = np.logical_or(ref_low, np.logical_or(zdr_high, rhohv_low))
+    qcrefl_grid = ma.masked_where(notweather, refl_grid)
 
-qcrefl_grid = ma.masked_where(notweather, refl_grid)
-qced = radar.extract_sweeps([0])
-qced.add_field_like("reflectivity", "reflectivityqc", qcrefl_grid)
+    qced = radar.extract_sweeps([0])
+    qced.add_field_like("reflectivity", "reflectivityqc", qcrefl_grid)
 
-save_as_csv("result.csv", qced, 5, False)
+    save_as_csv(filename + ".csv", qced, 5, False)
+
+##### MAIN #####
+import os
+filelist = os.listdir("./data")
+
+for filename in filelist:
+    if "2017_08_25_KHGX" in filename:
+        print "generating " + filename
+        generate_csv(filename)
+        print "done generating " + filename + ".csv"
