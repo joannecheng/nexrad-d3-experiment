@@ -70,6 +70,12 @@ radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_023727_V06.csv")
 radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_024248_V06.csv")
 radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_024742_V06.csv")
 radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_025303_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_025824_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_030344_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_030558_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_031128_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_031710_V06.csv")
+radarQueue.defer(d3.csv, "radar/2017_08_25_KHGX_KHGX20170825_032448_V06.csv")
 
 radarQueue.await(loadRadar)
 
