@@ -3,7 +3,7 @@ Figuring out how to display NEXRAD radar data with d3. This project is mostly a 
 NEXRAD data and explore how to visualize data with D3 and Canvas.
 
 
-# To Run:
+### To Run:
 ```shell
 > python -m SimpleHTTPServer 8889
 ```
