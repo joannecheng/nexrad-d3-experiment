@@ -10,11 +10,11 @@ const svg = d3.select("#viz")
   .attr("height", h)
   .on("click", () => {
     if (counter !== 0) {
-      d3.select('#canvas_viz_' + (counter-1))
-        .style('display', 'none');
+      d3.select("#canvas_viz_" + (counter-1))
+        .style("display", "none");
     }
-    const radarToShow = d3.select('#canvas_viz_' + counter);
-    radarToShow.style('display', 'inline');
+    const radarToShow = d3.select("#canvas_viz_" + counter);
+    radarToShow.style("display", "inline");
     counter += 1;
   })
 const projection = d3.geoAlbersUsa();
@@ -93,30 +93,34 @@ function loadRadar(error) {
 
 // Draw Radar
 function drawRadar(radarData, index) {
-  const radarColorScale = d3.scaleLinear()
+  const radarColorScale = d3
+    .scaleLinear()
     .domain([0, 10, 20, 30, 35, 40, 45, 50, 55])
-    .range(["#FFFFFF", "#808080", "#ADD8E6", "#00FB90", "#00BB00", "#FFFF70", "#D0D060", "#FF6060", "#DA0000"])
+    .range([ "#FFFFFF", "#808080", "#ADD8E6", "#00FB90", "#00BB00", "#FFFF70", "#D0D060", "#FF6060", "#DA0000", ]);
 
-
-  const canvas = svg.append("foreignObject")
-    .append('xhtml:canvas')
-    .attr('id', 'canvas_viz_' + index)
+  const canvas = svg
+    .append("foreignObject")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .append("xhtml:canvas")
+    .attr("id", "canvas_viz_" + index)
     .attr("width", w)
-    .attr("height", h)
-    .style('display', 'none')
+    .attr("height", h);
+  //.style('display', 'none')
 
-  const context = canvas.node().getContext("2d")
+  const context = canvas.node().getContext("2d");
   const detachedContainer = document.createElement("custom");
   const dataContainer = d3.select(detachedContainer);
 
-  const dataBinding = dataContainer.selectAll("custom.rect")
-    .data(radarData, (d) => d)
+  const dataBinding = dataContainer
+    .selectAll("custom.rect")
+    .data(radarData, (d) => d);
 
-  dataBinding.enter()
-    .append("custom")
-    .classed("rect", true)
+  dataBinding.enter().append("custom").classed("rect", true);
 
-  drawCanvas(dataContainer, context, radarColorScale)
+  drawCanvas(dataContainer, context, radarColorScale);
 }
 
 function drawCanvas(dataContainer, context, radarColorScale) {
