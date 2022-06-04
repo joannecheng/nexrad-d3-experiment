@@ -11,20 +11,18 @@ const svg = d3.select("#viz")
   .on("click", () => {
     if (counter !== 0) {
       d3.select("#canvas_viz_" + (counter-1))
-        .style("display", "none");
+        .style("display", "none")
     }
     const radarToShow = d3.select("#canvas_viz_" + counter);
-    radarToShow.style("display", "inline");
-    counter += 1;
+    radarToShow.style("display", "inline")
+    counter += 1
   })
-const projection = d3.geoAlbersUsa();
+const projection = d3.geoAlbersUsa()
 
-const basemapSVG = svg.append("g")
-  .classed("map", true)
+const basemapSVG = svg.append("g").classed("map", true)
 
-d3.json("us.json", function(err, data) {
-  const path = d3.geoPath()
-    .projection(projection)
+d3.json("us.json", (err, data) => {
+  const path = d3.geoPath().projection(projection)
 
   basemapSVG
     .append("path")
@@ -107,8 +105,8 @@ function drawRadar(radarData, index) {
     .append("xhtml:canvas")
     .attr("id", "canvas_viz_" + index)
     .attr("width", w)
-    .attr("height", h);
-  //.style('display', 'none')
+    .attr("height", h)
+    .style("display", "none");
 
   const context = canvas.node().getContext("2d");
   const detachedContainer = document.createElement("custom");
