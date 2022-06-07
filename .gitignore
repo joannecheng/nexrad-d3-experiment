@@ -1,1 +1,6 @@
 data/
+.clj-kondo/
+.lsp/
+
+cljs/node_modules
+cljs/public/js

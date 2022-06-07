@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "^2.19.0"
+  },
+  "scripts": {
+    "server": "npx shadow-cljs server",
+    "watch": "npx shadow-cljs watch app"
+  }
+}

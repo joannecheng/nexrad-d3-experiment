@@ -1,0 +1,22 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"
+  "src/dev"
+  "src/nexrad"
+  "src/test"]
+
+ :dependencies
+ []
+
+ :dev-http
+ {8899 "public"}
+
+ :builds
+ {:app
+  {:target :browser
+   :output-dir "public/js"
+   :asset-path "/js"
+
+   :modules
+   {:main ; becomes public/js/main.js
+    {:init-fn nexrad.main/init}}}}}
