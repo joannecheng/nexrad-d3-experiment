@@ -1,6 +1,11 @@
 # Nexrad Radar Visualization
 
-### To run dev:
+## Setup
+```
+npm install
+```
+
+## To run dev:
 ```
 npm run watch
 ```
