@@ -4,3 +4,6 @@ data/
 
 cljs/node_modules
 cljs/public/js
+cljs/.calva
+cljs/.shadow-cljs
+
