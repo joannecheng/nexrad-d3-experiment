@@ -5,5 +5,9 @@
   "scripts": {
     "server": "npx shadow-cljs server",
     "watch": "npx shadow-cljs watch app"
+  },
+  "dependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
   }
 }
