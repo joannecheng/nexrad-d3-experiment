@@ -1,13 +1,11 @@
 ;; shadow-cljs configuration
-{:source-paths
- ["src"
-  "src/dev"
-  "src/nexrad"
-  "src/test"]
+{:deps true
 
- :dependencies
- [[reagent "1.1.1"]
-  [re-frame "1.3.0-rc3"]]
+ ;;:source-paths
+ ;;["src"
+ ;; "src/dev"
+ ;; "src/nexrad"
+ ;; "src/test"]
 
  :dev-http
  {8899 "public"}

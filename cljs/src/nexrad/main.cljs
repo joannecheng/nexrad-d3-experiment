@@ -1,8 +1,37 @@
 (ns nexrad.main
   (:require [goog.dom :as dom]
-            [clojure.string :as str]))
+            [uix.core.alpha :as uix :refer [defui]]
+            [uix.dom.alpha :as uix.dom]
+            [clojure.string :as str]
+            [re-frame.core :as rf]))
+
+;;-- Subscriptions
+(rf/reg-sub
+ :radar-data
+ (fn [db _]
+   (:data db)))
+
+(rf/reg-sub
+ :title
+ (fn [db _]
+   (:title db)))
+
+;;-- Event Handlers
+(rf/reg-event-db
+ :init-db
+ (fn [_ _]
+   {:data []
+    :title "Test title"}))
+
+(rf/reg-event-db
+ :load-radar-data
+ (fn [db [_ radar-data]]
+   (assoc db :data radar-data)))
+
+;;-- Components
 
 (def !csv-data (atom nil))
+(def !us-map (atom nil))
 
 (defn- clean-row [row]
   (-> row
@@ -18,37 +47,35 @@
 
 
 (defn render-radar [radar-data]
-  (prn "rendering" radar-data))
+  (prn "rendering!!!" (first radar-data))
+  radar-data)
 
 (defn load-radar [filename]
-  (prn "filename" filename)
   (-> (js/fetch filename)
       (.then #(.text %))
       (.then #(reset! !csv-data %))
       (.then #(-> @!csv-data parse-csv render-radar))))
 
-(comment
-  (load-radar "radar/2017_08_25_KHGX_KHGX20170825_122025_V06.csv")
+(defn load-us-map []
+  (-> (js/fetch "us.json")
+      (.then #(.text %))
+      (.then #(.parse js/JSON %))
+      (.then #(reset! !us-map %))))
 
-  (parse-csv @!csv-data)
+(defn app []
+  (let [title @(rf/subscribe [:title])]
+    (prn "title" title)
+    [:div title]))
 
-  (js/parseFloat "1.23")
-
-  (let [k ["a" "b"]
-        v [[1 2] [3 4]]]
-    (map #(zipmap k %) v))
-
-  (zipmap ["a" "b"] [1 2]))
-
-(defn draw-map []
-  ;; You could use the "." notation, but using goog.dom lets us skip that
-  ;; using google closure allows us to reduce
-  ;; dependencies and ensure compatibility with advanced mode compilation
+(defn draw-radar []
   (let [el (dom/getElement "viz")
         radar (load-radar "radar/2017_08_25_KHGX_KHGX20170825_122025_V06.csv")]
-    (prn "element" el)))
+    (uix.dom/render [app] el)))
+
+(defn draw-map []
+  (let [el (dom/getElement "viz")]
+    (load-us-map)))
 
 (defn init []
-  (prn "test!!")
-
+  (rf/dispatch-sync [:init-db])
   (draw-map))
