@@ -1,9 +1,11 @@
-{:deps {uix/core {:mvn/version "0.0.1-alpha"}
-        uix/rn {:mvn/version "0.0.1-alpha"}
-        uix/dom {:mvn/version "0.0.1-alpha"}
+{:deps {cljsjs/react {:mvn/version "17.0.2-0"}
+        cljsjs/react-dom {:mvn/version "17.0.2-0"}
+
+        ;uix/core {:mvn/version "0.0.1-alpha"}
+        ;uix/rn {:mvn/version "0.0.1-alpha"}
+        ;uix/dom {:mvn/version "0.0.1-alpha"}
 
         re-frame/re-frame {:mvn/version "1.3.0-rc3"}
-        ;;com.cognitect/transit-cljs {:mvn/version "0.8.269"}
         thheller/shadow-cljs {:mvn/version "2.19.8"}}
 
  :paths ["src" "dev" "resources" "src/test"]}
