@@ -4,6 +4,7 @@
             [reagent.core :as r]
             [reagent.dom :as rd]
             [d3-geo :as d3-geo]
+            [topojson-client :as topojson]
             [re-frame.core :as rf]))
 
 ;;-- Subscriptions
@@ -27,13 +28,12 @@
  :init-db
  (fn [_ _]
    {:radar-data []
-    :map-data []
+    :map-data nil
     :title "Test title"}))
 
 (rf/reg-event-db
  :load-radar-data
  (fn [db [_ radar-data]]
-   (prn "loading radar dat" (first radar-data))
    (assoc db :radar-data radar-data)))
 
 (rf/reg-event-db
@@ -44,7 +44,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-- Random Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defn- clean-row [row]
   (-> row
       (update "lon" js/parseFloat)
@@ -72,23 +71,41 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn map-canvas [{:keys [states-path land-path]}]
+  (prn "states-path" states-path)
+  (when (some? states-path)
+    (prn "lrendering states ")
+    [:svg.base-map
+     [:g.land
+      [:path.land {:d land-path}]]
+     [:g.states
+      [:path.states {:d states-path}]]]))
 
 (defn base-map []
-  (let [map-data @(rf/subscribe [:map-data])
+  (let [!el (atom nil)
         projection (.geoAlbers ^js/Object d3-geo)
-        path (.geoPath d3-geo projection)]
-    (prn map-data)
-    (.log js/console (gobj/get map-data "feature"))
-    [:div "map data goes here"]))
+        path (d3-geo/geoPath projection)]
+    (fn []
+      (let [map-data @(rf/subscribe [:map-data])]
+        (when (some? map-data)
+          (let [states-path (-> ^js/Array map-data
+                                (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "states"])
+                                               (fn [a b] (not= a b)))
+                                path)
+                land-path (-> ^js/Array map-data
+                              (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "land"]))
+                              path)]
+            [:div
+             [map-canvas {:states-path  states-path
+                          :land-path land-path}]]))))))
 
 (defn radar-layer []
   (let [radar-data @(rf/subscribe [:radar-data])]
     (prn "radar data"  (first radar-data))
-    [:div (str "radar data here" (first radar-data))]))
+    [:div (str "radar data here")]))
 
 (defn App []
   ;; Main components go here
-  (prn "rendering app")
   [:div
    [base-map]
    [radar-layer]])

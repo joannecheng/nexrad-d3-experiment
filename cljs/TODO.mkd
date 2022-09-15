@@ -1,0 +1,3 @@
+- [x] Adding React, look into: https://github.com/roman01la/uix
+- [ ] Create basemap with us.json - it looks like I'm using topojson 
+- [ ] minimize us.json

@@ -1,0 +1,17 @@
+svg.base-map {
+    width: 900px;
+    height: 500px;
+}
+
+svg.base-map {
+    fill: none;
+}
+
+path.states {
+    stroke: #eee;
+}
+
+path.land {
+    fill: #aaa;
+    stroke: black;
+}

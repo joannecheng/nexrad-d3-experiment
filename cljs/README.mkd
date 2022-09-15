@@ -7,5 +7,5 @@ npm install
 
 ## To run dev:
 ```
-shadow-cljs watch app
+make watch-dev
 ```
