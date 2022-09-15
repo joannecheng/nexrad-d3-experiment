@@ -72,32 +72,24 @@
 ;; Components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn map-canvas [{:keys [states-path land-path]}]
-  (prn "states-path" states-path)
-  (when (some? states-path)
-    (prn "lrendering states ")
-    [:svg.base-map
-     [:g.land
-      [:path.land {:d land-path}]]
-     [:g.states
-      [:path.states {:d states-path}]]]))
+  [:svg.base-map
+   [:g.land
+    [:path.land {:d land-path}]]
+   [:g.states
+    [:path.states {:d states-path}]]])
 
-(defn base-map []
-  (let [!el (atom nil)
-        projection (.geoAlbers ^js/Object d3-geo)
-        path (d3-geo/geoPath projection)]
-    (fn []
-      (let [map-data @(rf/subscribe [:map-data])]
-        (when (some? map-data)
-          (let [states-path (-> ^js/Array map-data
-                                (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "states"])
-                                               (fn [a b] (not= a b)))
-                                path)
-                land-path (-> ^js/Array map-data
-                              (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "land"]))
-                              path)]
-            [:div
-             [map-canvas {:states-path  states-path
-                          :land-path land-path}]]))))))
+(defn base-map [{:keys [path]}]
+  (let [map-data @(rf/subscribe [:map-data])]
+    (when (some? map-data)
+      (let [states-path (-> ^js/Array map-data
+                            (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "states"])
+                                           (fn [a b] (not= a b)))
+                            path)
+            land-path (-> ^js/Array map-data
+                          (topojson/mesh (gobj/getValueByKeys map-data #js ["objects" "land"]))
+                          path)]
+        [map-canvas {:states-path  states-path
+                     :land-path land-path}]))))
 
 (defn radar-layer []
   (let [radar-data @(rf/subscribe [:radar-data])]
@@ -106,9 +98,11 @@
 
 (defn App []
   ;; Main components go here
-  [:div
-   [base-map]
-   [radar-layer]])
+  (let [projection (.geoAlbers ^js/Object d3-geo)
+        path (d3-geo/geoPath projection)]
+    [:div
+     [base-map {:path path}]
+     [radar-layer {:path path}]]))
 
 (defn init []
   (let [el (dom/getElement "viz")]
