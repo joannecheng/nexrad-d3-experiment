@@ -1,9 +1,9 @@
-svg.base-map {
+svg.nexrad-map, .radar-layer {
     width: 900px;
     height: 500px;
 }
 
-svg.base-map {
+g.base-layer {
     fill: none;
 }
 
@@ -12,6 +12,6 @@ path.states {
 }
 
 path.land {
-    fill: #aaa;
+    fill: #ccc;
     stroke: black;
 }

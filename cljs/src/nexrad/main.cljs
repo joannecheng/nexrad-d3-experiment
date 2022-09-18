@@ -7,7 +7,9 @@
             [topojson-client :as topojson]
             [re-frame.core :as rf]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-- Subscriptions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (rf/reg-sub
  :radar-data
  (fn [db _]
@@ -46,14 +48,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- clean-row [row]
   (-> row
-      (update "lon" js/parseFloat)
-      (update "lat" js/parseFloat)
-      (update "value" js/parseFloat)))
+      (update :lon js/parseFloat)
+      (update :lat js/parseFloat)
+      (update :value js/parseFloat)))
 
 (defn- parse-csv [csv-body]
   (let [all-rows (->> (clojure.string/split csv-body #"\r\n")
-                      (map #(clojure.string/split % #",")))]
-    (mapv #(-> (zipmap (first all-rows) %) clean-row)
+                      (map #(clojure.string/split % #",")))
+        csv-keys (map keyword (first all-rows))]
+    (mapv #(-> (zipmap csv-keys %)
+               clean-row)
           (rest all-rows))))
 
 (defn load-radar [filename]
@@ -72,7 +76,7 @@
 ;; Components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn map-canvas [{:keys [states-path land-path]}]
-  [:svg.base-map
+  [:g.base-layer
    [:g.land
     [:path.land {:d land-path}]]
    [:g.states
@@ -92,15 +96,22 @@
                      :land-path land-path}]))))
 
 (defn radar-layer []
-  (let [radar-data @(rf/subscribe [:radar-data])]
-    (prn "radar data"  (first radar-data))
-    [:div (str "radar data here")]))
+  (let [!canvas-ref (atom nil)]
+    (fn [{:keys [projection]}]
+      (let [radar-data @(rf/subscribe [:radar-data])]
+        (.log js/console "context?" @!canvas-ref)
+        [:foreignObject {:x 0 :y 0 :width "100%" :height "100%"}
+         [:canvas {:ref #(reset! !canvas-ref %)}
+          #_(for [{:keys [value lon lat]} radar-data]
+              (let [coords (projection #js [lon lat])]
+                #_[:rect {:key (str lon lat) :value value :x lon :y lat}]))
+          #_[:text.radar-layer (str "radar data here")]]]))))
 
-(defn App []
+(defn NexradApp []
   ;; Main components go here
   (let [projection (.geoAlbers ^js/Object d3-geo)
         path (d3-geo/geoPath projection)]
-    [:div
+    [:svg.nexrad-map
      [base-map {:path path}]
      [radar-layer {:path path}]]))
 
@@ -109,4 +120,4 @@
     (rf/dispatch-sync [:init-db])
     (load-us-map)
     (load-radar "radar/2017_08_25_KHGX_KHGX20170825_122025_V06.csv")
-    (rd/render [App] el)))
+    (rd/render [NexradApp] el)))

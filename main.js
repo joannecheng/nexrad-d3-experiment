@@ -102,7 +102,7 @@ function drawRadar(radarData, index) {
     .attr("y", 0)
     .attr("width", "100%")
     .attr("height", "100%")
-    .append("xhtml:canvas")
+    .append("canvas")
     .attr("id", "canvas_viz_" + index)
     .attr("width", w)
     .attr("height", h)
