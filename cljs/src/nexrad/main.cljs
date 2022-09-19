@@ -95,25 +95,45 @@
         [map-canvas {:states-path  states-path
                      :land-path land-path}]))))
 
+(defn- draw-radar [projection context radar-data]
+  (doseq [{:keys [lon lat value]} radar-data]
+    (let [coords (projection #js [lon lat])]
+      (.beginPath context)
+      (.rect context (aget coords 0) (aget coords 1) 10 10)
+      (set! (.-fillStyle context) "black")
+      (.fill context)
+      (.closePath context)
+      (prn (aget coords 0) coords)))
+  #_(let [coords (projection #js [lon lat])]
+      (prn "value" value)
+      #_[:rect {:key (str lon lat) :value value :x lon :y lat}]))
+
+
 (defn radar-layer []
-  (let [!canvas-ref (atom nil)]
-    (fn [{:keys [projection]}]
-      (let [radar-data @(rf/subscribe [:radar-data])]
-        (.log js/console "context?" @!canvas-ref)
-        [:foreignObject {:x 0 :y 0 :width "100%" :height "100%"}
-         [:canvas {:ref #(reset! !canvas-ref %)}
-          #_(for [{:keys [value lon lat]} radar-data]
-              (let [coords (projection #js [lon lat])]
-                #_[:rect {:key (str lon lat) :value value :x lon :y lat}]))
-          #_[:text.radar-layer (str "radar data here")]]]))))
+  (let [!canvas-ref (atom nil)
+        !context (atom nil)]
+    (r/create-class
+     {:component-did-update (fn [this]
+                              (let [{:keys [projection radar-data]} (r/props this)]
+                                (when (some? @!context)
+                                  (draw-radar projection @!context radar-data))))
+      :reagent-render
+      (fn [{:keys [projection]}]
+        (when (some? @!canvas-ref)
+          (reset! !context (cond-> @!canvas-ref
+                             (some? @!canvas-ref) (.getContext "2d"))))
+        [:foreignObject {:x 0 :y 0 :style {:width (str 900 "px") :height (str 500 "px")}}
+         [:canvas.radar {:ref #(reset! !canvas-ref %) :height 500 :width 900}
+          #_[:text.radar-layer (str "radar data here")]]])})))
 
 (defn NexradApp []
   ;; Main components go here
   (let [projection (.geoAlbers ^js/Object d3-geo)
-        path (d3-geo/geoPath projection)]
+        path (d3-geo/geoPath projection)
+        radar-data @(rf/subscribe [:radar-data])]
     [:svg.nexrad-map
      [base-map {:path path}]
-     [radar-layer {:path path}]]))
+     [radar-layer {:path path :projection projection :radar-data radar-data}]]))
 
 (defn init []
   (let [el (dom/getElement "viz")]
