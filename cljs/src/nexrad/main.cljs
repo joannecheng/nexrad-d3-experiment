@@ -111,11 +111,7 @@
         (.rect context (aget coords 0) (aget coords 1) 1 1)
         (set! (.-fillStyle context) (radar-color-scale value))
         (.fill context)
-        (.closePath context)
-        (prn (aget coords 0) coords))))
-  #_(let [coords (projection #js [lon lat])]
-      (prn "value" value)
-      #_[:rect {:key (str lon lat) :value value :x lon :y lat}]))
+        (.closePath context)))))
 
 
 (defn radar-layer []
