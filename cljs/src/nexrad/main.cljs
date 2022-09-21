@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [reagent.dom :as rd]
             [d3-geo :as d3-geo]
-            [d3-color :as d3-color]
+            [d3-scale :as d3-scale]
             [topojson-client :as topojson]
             [re-frame.core :as rf]))
 
@@ -97,14 +97,22 @@
                      :land-path land-path}]))))
 
 (defn- draw-radar [projection context radar-data]
-  (doseq [{:keys [lon lat value]} radar-data]
-    (let [coords (projection #js [lon lat])]
-      (.beginPath context)
-      (.rect context (aget coords 0) (aget coords 1) 10 10)
-      (set! (.-fillStyle context) "black")
-      (.fill context)
-      (.closePath context)
-      (prn (aget coords 0) coords)))
+  (let [radar-color-scale (-> d3-scale
+                              .scaleLinear
+                              (.domain #js [10 20 30 35 40 45 50 55])
+                              (.range #js ["#FFFFFF00" "#808080"
+                                           "#ADD8E6" "#00FB90"
+                                           "#00BB00" "#FFFF70"
+                                           "#D0D060" "#FF6060"
+                                           "#DA0000"]))]
+    (doseq [{:keys [lon lat value]} radar-data]
+      (let [coords (projection #js [lon lat])]
+        (.beginPath context)
+        (.rect context (aget coords 0) (aget coords 1) 1 1)
+        (set! (.-fillStyle context) (radar-color-scale value))
+        (.fill context)
+        (.closePath context)
+        (prn (aget coords 0) coords))))
   #_(let [coords (projection #js [lon lat])]
       (prn "value" value)
       #_[:rect {:key (str lon lat) :value value :x lon :y lat}]))

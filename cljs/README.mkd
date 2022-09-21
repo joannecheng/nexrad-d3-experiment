@@ -9,3 +9,4 @@ npm install
 ```
 make watch-dev
 ```
+Then open http://localhost:8899
