@@ -26,7 +26,9 @@
  (fn [db _]
    (:title db)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-- Event Handlers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (rf/reg-event-db
  :init-db
  (fn [_ _]
@@ -45,7 +47,7 @@
    (assoc db :map-data map-data)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;-- Random Helpers
+;;-- Data Cleaning Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- clean-row [row]
   (-> row
@@ -61,6 +63,9 @@
                clean-row)
           (rest all-rows))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;-- HTTP requests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn load-radar [filename]
   (-> (js/fetch filename)
       (.then #(.text %))
@@ -73,6 +78,7 @@
       (.then #(.parse js/JSON %))
       (.then #(rf/dispatch [:load-map-data %]))))
 
+;;---------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,8 +134,7 @@
           (reset! !context (cond-> @!canvas-ref
                              (some? @!canvas-ref) (.getContext "2d"))))
         [:foreignObject {:x 0 :y 0 :style {:width (str 900 "px") :height (str 500 "px")}}
-         [:canvas.radar {:ref #(reset! !canvas-ref %) :height 500 :width 900}
-          #_[:text.radar-layer (str "radar data here")]]])})))
+         [:canvas.radar {:ref #(reset! !canvas-ref %) :height 500 :width 900}]])})))
 
 (defn NexradApp []
   ;; Main components go here
