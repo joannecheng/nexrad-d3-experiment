@@ -4,6 +4,7 @@
             [reagent.core :as r]
             [reagent.dom :as rd]
             [d3-geo :as d3-geo]
+            [d3-color :as d3-color]
             [topojson-client :as topojson]
             [re-frame.core :as rf]))
 
