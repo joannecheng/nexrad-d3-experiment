@@ -9,44 +9,6 @@
             [re-frame.core :as rf]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;-- Subscriptions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(rf/reg-sub
- :radar-data
- (fn [db _]
-   (:radar-data db)))
-
-(rf/reg-sub
- :map-data
- (fn [db _]
-   (:map-data db)))
-
-(rf/reg-sub
- :title
- (fn [db _]
-   (:title db)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;-- Event Handlers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(rf/reg-event-db
- :init-db
- (fn [_ _]
-   {:radar-data []
-    :map-data nil
-    :title "Test title"}))
-
-(rf/reg-event-db
- :load-radar-data
- (fn [db [_ radar-data]]
-   (assoc db :radar-data radar-data)))
-
-(rf/reg-event-db
- :load-map-data
- (fn [db [_ map-data]]
-   (assoc db :map-data map-data)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-- Data Cleaning Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn- clean-row [row]
@@ -66,11 +28,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;-- HTTP requests
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defn load-radar [filename]
-  (-> (js/fetch filename)
-      (.then #(.text %))
-      (.then #(parse-csv %))
-      (.then #(rf/dispatch [:load-radar-data %]))))
+(def ts ["20170825_120316_V06"
+         "20170825_120859_V06"
+         "20170825_121442_V06"
+         "20170825_122025_V06"
+         "20170825_122608_V06"])
+
+(defn radar-url [timestamp]
+  (str "radar/2017_08_25_KHGX_KHGX"
+       timestamp
+       ".csv"))
+
+(defn load-radar [ts-index]
+  (prn "ts-index" ts-index)
+  (let [filename (radar-url (get ts ts-index))]
+    (-> (js/fetch filename)
+        (.then #(.text %))
+        (.then #(parse-csv %))
+        (.then #(rf/dispatch [:load-radar-data %])))))
 
 (defn load-us-map []
   (-> (js/fetch "us.json")
@@ -78,10 +53,74 @@
       (.then #(.parse js/JSON %))
       (.then #(rf/dispatch [:load-map-data %]))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;-- Subscriptions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(rf/reg-sub
+ :radar-data
+ (fn [db _]
+   (:radar-data db)))
+
+(rf/reg-sub
+ :map-data
+ (fn [db _]
+   (:map-data db)))
+
+(rf/reg-sub
+ :ts-index
+ (fn [db _]
+   (:ts-index db)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;-- Event Handlers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(rf/reg-event-db
+ :init-db
+ (fn [_ _]
+   {:radar-data []
+    :map-data nil
+    :ts-index 0}))
+
+(rf/reg-event-db
+ :load-radar-data
+ (fn [db [_ radar-data]]
+   (assoc db :radar-data radar-data)))
+
+(rf/reg-event-db
+ :load-map-data
+ (fn [db [_ map-data]]
+   (assoc db :map-data map-data)))
+
+(rf/reg-event-fx
+ :update-timestamp
+ (fn [cofx [_ ts-index]]
+   (load-radar ts-index)
+   {:db (assoc (:db cofx) :ts-index ts-index)}))
+
 ;;---------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; navigation ---------------------------------------------------
+(defn slider []
+  (r/with-let [!val (r/atom 0)
+               ts-index-subscribe (rf/subscribe [:ts-index])]
+    [:input {:type "range"
+             :name "snapshot"
+             :value @ts-index-subscribe
+             :max (dec (count ts))
+             :min 0
+             :step 1
+             :onChange (fn [^js/Event e]
+                         (when (not= (js/parseInt (.-target.value e)) @ts-index-subscribe)
+                           (rf/dispatch [:update-timestamp (js/parseInt (.-target.value e))])))}]))
+
+(defn navigation []
+  [:div
+   [slider]])
+
+;; maps ---------------------------------------------------------
 (defn map-canvas [{:keys [states-path land-path]}]
   [:g.base-layer
    [:g.land
@@ -111,6 +150,7 @@
                                            "#00BB00" "#FFFF70"
                                            "#D0D060" "#FF6060"
                                            "#DA0000"]))]
+    (.clearRect context 0 0 900 500)
     (doseq [{:keys [lon lat value]} radar-data]
       (let [coords (projection #js [lon lat])]
         (.beginPath context)
@@ -118,7 +158,6 @@
         (set! (.-fillStyle context) (radar-color-scale value))
         (.fill context)
         (.closePath context)))))
-
 
 (defn radar-layer []
   (let [!canvas-ref (atom nil)
@@ -129,7 +168,7 @@
                                 (when (some? @!context)
                                   (draw-radar projection @!context radar-data))))
       :reagent-render
-      (fn [{:keys [projection]}]
+      (fn [_]
         (when (some? @!canvas-ref)
           (reset! !context (cond-> @!canvas-ref
                              (some? @!canvas-ref) (.getContext "2d"))))
@@ -141,13 +180,15 @@
   (let [projection (.geoAlbers ^js/Object d3-geo)
         path (d3-geo/geoPath projection)
         radar-data @(rf/subscribe [:radar-data])]
-    [:svg.nexrad-map
-     [base-map {:path path}]
-     [radar-layer {:path path :projection projection :radar-data radar-data}]]))
+    [:div
+     [:svg.nexrad-map
+      [base-map {:path path}]
+      [radar-layer {:path path :projection projection :radar-data radar-data}]]
+     [navigation]]))
 
 (defn init []
   (let [el (dom/getElement "viz")]
     (rf/dispatch-sync [:init-db])
     (load-us-map)
-    (load-radar "radar/2017_08_25_KHGX_KHGX20170825_122025_V06.csv")
+    (load-radar 0)
     (rd/render [NexradApp] el)))
